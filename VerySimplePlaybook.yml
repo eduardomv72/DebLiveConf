@@ -1,0 +1,17 @@
+
+- name: Personalizar el sistema live
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Zona horaria
+      community.general.timezone:
+        name: Europe/Madrid
+
+    - name: Quitar paquetes que no necesito
+      ansible.builtin.apt:
+        name:
+          - gnome-games
+        state: absent
+        autoremove: true
