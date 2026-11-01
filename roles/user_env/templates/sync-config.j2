@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Vuelve a descargar y aplicar la configuración desde GitHub.
+# Uso:  sync-config [--tags gnome] [--ask-vault-pass] [--check --diff]
+exec sudo ansible-pull -U {{ repo_url }} -C {{ repo_branch }} -d /var/lib/ansible-pull "$@" local.yml

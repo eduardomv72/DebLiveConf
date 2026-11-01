@@ -1,0 +1,10 @@
+---
+bashrc_extra: |
+  alias ll='ls -alFh --color=auto'
+  alias la='ls -A'
+  alias ..='cd ..'
+  alias gs='git status'
+  alias update='sudo apt update && sudo apt upgrade'
+  export EDITOR=vim
+  export HISTSIZE=10000
+  export HISTCONTROL=ignoredups:erasedups

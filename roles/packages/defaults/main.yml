@@ -1,0 +1,16 @@
+---
+# Paquetes que nunca se deben eliminar (el playbook se detiene si aparecen en packages_remove).
+packages_protected:
+  - gnome-shell
+  - gdm3
+  - network-manager
+  - sudo
+  - ansible
+  - git
+  - live-boot
+  - live-config
+  - systemd
+  - apt
+  - dpkg
+  - libc6
+  - python3

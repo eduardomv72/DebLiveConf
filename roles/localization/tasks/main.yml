@@ -1,0 +1,51 @@
+---
+- name: Instalar paquetes de localización
+  ansible.builtin.apt:
+    name:
+      - locales
+      - keyboard-configuration
+      - console-setup
+      - tzdata
+    state: present
+
+- name: Zona horaria
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Activar sincronización horaria (NTP)
+  ansible.builtin.command: timedatectl set-ntp true
+  changed_when: false
+  failed_when: false
+
+- name: Generar locales
+  community.general.locale_gen:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ locales_generate }}"
+
+- name: Locale por defecto del sistema
+  ansible.builtin.copy:
+    dest: /etc/default/locale
+    content: |
+      LANG={{ locale_default }}
+      LANGUAGE={{ locale_default.split('.')[0] }}:{{ locale_default.split('_')[0] }}
+    mode: "0644"
+
+- name: Teclado (consola y X)
+  ansible.builtin.template:
+    src: keyboard.j2
+    dest: /etc/default/keyboard
+    mode: "0644"
+  notify: Aplicar teclado
+
+- name: Nombre del equipo
+  ansible.builtin.hostname:
+    name: "{{ system_hostname }}"
+  when: system_hostname | length > 0
+
+- name: Resolver el nombre del equipo localmente
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s'
+    line: "127.0.1.1 {{ system_hostname }}"
+  when: system_hostname | length > 0

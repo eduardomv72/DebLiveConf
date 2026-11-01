@@ -1,0 +1,10 @@
+" Gestionado por Ansible
+set nocompatible
+syntax on
+set number
+set expandtab
+set shiftwidth=4
+set tabstop=4
+set ignorecase smartcase
+set hlsearch incsearch
+set mouse=a

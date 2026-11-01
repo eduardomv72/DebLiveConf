@@ -1,0 +1,115 @@
+---
+# =====================================================================
+#  CONFIGURACIÓN GLOBAL - aquí es donde personalizas todo
+# =====================================================================
+
+# --- Repositorio (lo usa el script sync-config) ---
+repo_url: "https://github.com/TU_USUARIO/live-config.git"
+repo_branch: main
+
+# --- Usuario del sistema live ---
+live_user: user
+
+# --- Localización ---
+timezone: Europe/Madrid
+locale_default: es_ES.UTF-8
+locales_generate:
+  - es_ES.UTF-8
+  - en_US.UTF-8
+keyboard_model: pc105
+keyboard_layout: es
+keyboard_variant: ""
+keyboard_options: ""
+system_hostname: debian-live
+
+# --- Red ---
+wifi_country: ES
+# Las redes wifi (con contraseña) NO van aquí: se definen cifradas en
+# group_vars/all/vault.yml (ver vault.yml.example).
+wifi_networks: []
+
+# --- Paquetes ---
+# Revisa siempre con:  sudo apt -s remove <paquete>   y   --check --diff
+packages_remove:
+  - gnome-maps
+  - gnome-weather
+  - gnome-contacts
+  - gnome-music
+  - gnome-characters
+  - simple-scan
+  - yelp
+packages_purge: false
+packages_autoremove: false      # true puede arrastrar paquetes inesperados en un live
+
+packages_install_recommends: false
+packages_install:
+  - git
+  - curl
+  - wget
+  - vim
+  - tmux
+  - htop
+  - tree
+  - jq
+  - rsync
+  - unzip
+  - ripgrep
+  - bash-completion
+  - openssh-client
+  - network-manager
+  - dconf-cli
+  - python3-psutil
+  - gnome-tweaks
+  - fonts-firacode
+
+# Si alguno falla (nombre distinto o no disponible) solo se avisa, no se detiene el playbook.
+packages_install_optional:
+  - gnome-shell-extension-manager
+  - gnome-shell-extension-dashtodock
+  - gnome-shell-extension-appindicator
+  - gnome-shell-extension-caffeine
+  - keepassxc
+
+# --- Git y SSH ---
+git_user_name: ""
+git_user_email: ""
+ssh_private_key: ""     # se rellena desde vault.yml
+
+# --- Ajustes de GNOME (formato GVariant, igual que 'dconf dump') ---
+# Estructura:  ruta/dconf:  clave: valor
+# Cadenas entre comillas simples dentro de comillas dobles. Booleanos y números, tal cual.
+# Para ver el valor exacto de un ajuste:   dconf dump /   o   gsettings get <esquema> <clave>
+gnome_settings:
+  org/gnome/desktop/interface:
+    color-scheme: "'prefer-dark'"
+    clock-show-weekday: true
+    enable-hot-corners: false
+    show-battery-percentage: true
+  org/gnome/desktop/input-sources:
+    sources: "[('xkb', '{{ keyboard_layout }}{{ '+' ~ keyboard_variant if keyboard_variant else '' }}')]"
+  org/gnome/desktop/wm/preferences:
+    button-layout: "'appmenu:minimize,maximize,close'"
+  org/gnome/desktop/peripherals/touchpad:
+    tap-to-click: true
+    natural-scroll: false
+  org/gnome/desktop/session:
+    idle-delay: "uint32 0"
+  org/gnome/desktop/screensaver:
+    lock-enabled: false
+  org/gnome/settings-daemon/plugins/power:
+    sleep-inactive-ac-type: "'nothing'"
+  org/gnome/mutter:
+    dynamic-workspaces: true
+    edge-tiling: true
+  org/gnome/nautilus/preferences:
+    default-folder-viewer: "'list-view'"
+  org/gnome/shell:
+    favorite-apps: "['org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'org.gnome.Terminal.desktop']"
+    enabled-extensions: "['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']"
+  org/gnome/shell/extensions/dash-to-dock:
+    dock-position: "'BOTTOM'"
+    extend-height: false
+    dash-max-icon-size: 40
+  # Fondo de pantalla (ejemplo):
+  # org/gnome/desktop/background:
+  #   picture-uri: "'file:///usr/share/backgrounds/gnome/adwaita-l.jxl'"

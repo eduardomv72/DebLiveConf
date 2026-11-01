@@ -1,0 +1,33 @@
+---
+- name: Verificar que el sistema es Debian
+  ansible.builtin.assert:
+    that: ansible_facts['distribution'] == 'Debian'
+    fail_msg: "Pensado para Debian; detectado {{ ansible_facts['distribution'] }}."
+    quiet: true
+
+- name: Avisar si no es Debian 13
+  ansible.builtin.debug:
+    msg: "Aviso: probado en Debian 13, detectado {{ ansible_facts['distribution_version'] }}."
+  when: ansible_facts['distribution_major_version'] != '13'
+
+- name: Detectar si se ejecuta desde un sistema live
+  ansible.builtin.stat:
+    path: /run/live/medium
+  register: preflight_live_medium
+
+- name: Obtener datos del usuario {{ live_user }}
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ live_user }}"
+
+- name: Fijar variables del usuario
+  ansible.builtin.set_fact:
+    live_uid: "{{ getent_passwd[live_user][1] }}"
+    live_gid: "{{ getent_passwd[live_user][2] }}"
+    live_home: "{{ getent_passwd[live_user][4] }}"
+    is_live: "{{ preflight_live_medium.stat.exists }}"
+
+- name: Actualizar el índice de paquetes
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600

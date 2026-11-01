@@ -1,0 +1,32 @@
+---
+# Los ajustes se aplican como valores por defecto del sistema (dconf system-db),
+# así no hace falta una sesión gráfica abierta ni DBus del usuario.
+- name: Instalar dconf
+  ansible.builtin.apt:
+    name: dconf-cli
+    state: present
+
+- name: Perfil dconf (base de usuario + base local del sistema)
+  ansible.builtin.copy:
+    dest: /etc/dconf/profile/user
+    content: |
+      user-db:user
+      system-db:local
+    mode: "0644"
+  notify: Actualizar dconf
+
+- name: Directorio de ajustes locales
+  ansible.builtin.file:
+    path: /etc/dconf/db/local.d
+    state: directory
+    mode: "0755"
+
+- name: Escribir ajustes de GNOME
+  ansible.builtin.template:
+    src: dconf-local.j2
+    dest: /etc/dconf/db/local.d/00-live-defaults
+    mode: "0644"
+  notify: Actualizar dconf
+
+- name: Aplicar ajustes ahora
+  ansible.builtin.meta: flush_handlers

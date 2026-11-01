@@ -1,0 +1,4 @@
+---
+- name: Aplicar teclado
+  ansible.builtin.command: udevadm trigger --subsystem-match=input --action=change
+  changed_when: true

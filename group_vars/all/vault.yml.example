@@ -1,0 +1,13 @@
+---
+# Copia este archivo a vault.yml, rellénalo y cífralo:
+#   cp vault.yml.example vault.yml && ansible-vault encrypt vault.yml
+# Para editarlo después:  ansible-vault edit group_vars/all/vault.yml
+# Al ejecutar, añade --ask-vault-pass (bootstrap.sh -- --ask-vault-pass).
+wifi_networks:
+  - ssid: "MiWifi"
+    psk: "contraseña-de-mi-wifi"
+
+ssh_private_key: |
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  ...
+  -----END OPENSSH PRIVATE KEY-----

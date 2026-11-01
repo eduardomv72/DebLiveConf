@@ -1,0 +1,57 @@
+---
+- name: Script sync-config para volver a aplicar la configuración
+  ansible.builtin.template:
+    src: sync-config.j2
+    dest: /usr/local/bin/sync-config
+    mode: "0755"
+
+- name: Directorios del usuario
+  ansible.builtin.file:
+    path: "{{ live_home }}/{{ item.path }}"
+    state: directory
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: ".config", mode: "0755" }
+    - { path: ".ssh", mode: "0700" }
+
+- name: Alias y variables en .bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ live_home }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: "{{ bashrc_extra }}"
+    create: true
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0644"
+
+- name: Dotfiles (vim, tmux)
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ live_home }}/{{ item.dest }}"
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0644"
+  loop:
+    - { src: vimrc, dest: .vimrc }
+    - { src: tmux.conf, dest: .tmux.conf }
+
+- name: Configuración de git
+  ansible.builtin.template:
+    src: gitconfig.j2
+    dest: "{{ live_home }}/.gitconfig"
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0644"
+  when: git_user_name | length > 0
+
+- name: Clave SSH privada (viene del vault)
+  ansible.builtin.copy:
+    content: "{{ ssh_private_key | trim }}\n"
+    dest: "{{ live_home }}/.ssh/id_ed25519"
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0600"
+  no_log: true
+  when: ssh_private_key | length > 0

@@ -1,0 +1,61 @@
+---
+- name: Instalar herramientas de red y wifi
+  ansible.builtin.apt:
+    name:
+      - network-manager
+      - wpasupplicant
+      - iw
+      - rfkill
+      - wireless-regdb
+    state: present
+
+- name: NetworkManager activo
+  ansible.builtin.systemd:
+    name: NetworkManager
+    enabled: true
+    state: started
+
+- name: Desbloquear el wifi si estuviera bloqueado
+  ansible.builtin.command: rfkill unblock wifi
+  changed_when: false
+  failed_when: false
+
+- name: Región regulatoria del wifi
+  ansible.builtin.command: "iw reg set {{ wifi_country }}"
+  changed_when: false
+  failed_when: false
+  when: wifi_country | length > 0
+
+- name: Listar conexiones existentes de NetworkManager
+  ansible.builtin.command: nmcli -g NAME connection show
+  register: network_nm_connections
+  changed_when: false
+  when: wifi_networks | length > 0
+
+- name: Crear conexiones wifi (WPA2/WPA3-PSK)
+  ansible.builtin.command:
+    argv:
+      - nmcli
+      - connection
+      - add
+      - type
+      - wifi
+      - con-name
+      - "{{ item.ssid }}"
+      - ifname
+      - "*"
+      - ssid
+      - "{{ item.ssid }}"
+      - wifi-sec.key-mgmt
+      - wpa-psk
+      - wifi-sec.psk
+      - "{{ item.psk }}"
+      - connection.autoconnect
+      - "yes"
+  loop: "{{ wifi_networks }}"
+  loop_control:
+    label: "{{ item.ssid }}"
+  when:
+    - wifi_networks | length > 0
+    - item.ssid not in network_nm_connections.stdout_lines
+  no_log: true

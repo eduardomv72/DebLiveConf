@@ -1,0 +1,8 @@
+# Gestionado por Ansible - no editar a mano
+{% for section, keys in gnome_settings.items() %}
+[{{ section }}]
+{% for key, value in keys.items() %}
+{{ key }}={{ (value | lower) if value is boolean else value }}
+{% endfor %}
+
+{% endfor %}

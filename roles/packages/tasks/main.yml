@@ -1,0 +1,41 @@
+---
+- name: Comprobar que no se eliminan paquetes críticos
+  ansible.builtin.assert:
+    that: (packages_remove | intersect(packages_protected)) | length == 0
+    fail_msg: "packages_remove contiene paquetes protegidos: {{ packages_remove | intersect(packages_protected) }}"
+    quiet: true
+
+- name: Eliminar paquetes que no se necesitan
+  ansible.builtin.apt:
+    name: "{{ packages_remove }}"
+    state: absent
+    purge: "{{ packages_purge }}"
+    autoremove: "{{ packages_autoremove }}"
+  when: packages_remove | length > 0
+
+- name: Instalar paquetes necesarios
+  ansible.builtin.apt:
+    name: "{{ packages_install }}"
+    state: present
+    install_recommends: "{{ packages_install_recommends }}"
+  when: packages_install | length > 0
+
+- name: Instalar paquetes opcionales (uno a uno)
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: "{{ packages_install_recommends }}"
+  loop: "{{ packages_install_optional }}"
+  register: packages_optional_result
+  ignore_errors: true
+
+- name: Avisar de paquetes opcionales que no se pudieron instalar
+  ansible.builtin.debug:
+    msg: "No se pudo instalar el paquete opcional: {{ item.item }}"
+  loop: "{{ packages_optional_result.results | selectattr('failed', 'true') | list }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Limpiar la caché de apt (en un live ocupa RAM)
+  ansible.builtin.apt:
+    clean: true

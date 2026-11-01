@@ -1,0 +1,18 @@
+---
+# Punto de entrada de ansible-pull.
+# Orden: comprobaciones -> paquetes -> idioma/teclado -> red -> hardware -> GNOME -> entorno de usuario.
+# Se puede ejecutar una sola parte con tags, p. ej.:  sync-config --tags gnome
+- name: Preparar sistema Debian Live
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+  roles:
+    - { role: preflight,    tags: [always, preflight] }
+    - { role: packages,     tags: [packages] }
+    - { role: localization, tags: [localization] }
+    - { role: network,      tags: [network] }
+    - { role: hardware,     tags: [hardware] }
+    - { role: gnome,        tags: [gnome] }
+    - { role: user_env,     tags: [user_env] }

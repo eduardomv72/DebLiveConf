@@ -1,0 +1,22 @@
+---
+# Ajustes según el hardware detectado (facts de Ansible).
+- name: Detectar si es una máquina virtual
+  ansible.builtin.set_fact:
+    hardware_virt_role: "{{ ansible_facts['virtualization_role'] | default('') | lower }}"
+    hardware_virt_type: "{{ ansible_facts['virtualization_type'] | default('') | lower }}"
+
+- name: Herramientas de invitado para KVM/QEMU
+  ansible.builtin.apt:
+    name: spice-vdagent
+    state: present
+  when:
+    - hardware_virt_role == 'guest'
+    - hardware_virt_type in ['kvm', 'qemu']
+
+- name: Herramientas de invitado para VMware
+  ansible.builtin.apt:
+    name: open-vm-tools-desktop
+    state: present
+  when:
+    - hardware_virt_role == 'guest'
+    - hardware_virt_type == 'vmware'
