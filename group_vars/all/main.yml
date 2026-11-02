@@ -12,7 +12,7 @@ live_user: user
 
 # --- Localización ---
 timezone: Europe/Madrid
-locale_default: es_ES.UTF-8
+locale_default: en_US.UTF-8
 locales_generate:
   - es_ES.UTF-8
   - en_US.UTF-8
@@ -34,10 +34,14 @@ packages_remove:
   - gnome-maps
   - gnome-weather
   - gnome-contacts
+  - gnome-calendar
   - gnome-music
   - gnome-characters
+  - gnome-tour
   - simple-scan
   - yelp
+  - evolution
+  - libreoffice*
 packages_purge: false
 packages_autoremove: false      # true puede arrastrar paquetes inesperados en un live
 
