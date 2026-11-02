@@ -14,5 +14,5 @@
     - { role: localization, tags: [localization] }
     - { role: network,      tags: [network] }
     - { role: hardware,     tags: [hardware] }
-    - { role: gnome,        tags: [gnome] }
+    - { role: gnome-emv,        tags: [gnome] }
     - { role: user_env,     tags: [user_env] }
