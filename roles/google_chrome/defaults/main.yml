@@ -1,0 +1,6 @@
+---
+chrome_set_default: true
+chrome_policies:
+  MetricsReportingEnabled: false
+  DefaultBrowserSettingEnabled: false
+chrome_force_extensions: []

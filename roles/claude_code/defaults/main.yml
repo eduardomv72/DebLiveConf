@@ -1,0 +1,5 @@
+---
+# 'apt' (repositorio firmado, se actualiza con apt) o 'native' (instalador oficial)
+claude_code_method: apt
+# Huella oficial de la clave del repositorio apt de Claude Code (publicada por Anthropic).
+claude_code_key_fingerprint: "31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE"

@@ -1,0 +1,8 @@
+{
+{% for key, value in chrome_policies.items() %}
+  {{ key | to_json }}: {{ value | to_json }}{{ "," if (not loop.last) or (chrome_force_extensions | length > 0) else "" }}
+{% endfor %}
+{% if chrome_force_extensions | length > 0 %}
+  "ExtensionInstallForcelist": {{ chrome_force_extensions | map('regex_replace', '$', ';https://clients2.google.com/service/update2/crx') | list | to_json }}
+{% endif %}
+}

@@ -1,0 +1,64 @@
+---
+# Claude Desktop para Linux está en beta: Ubuntu 22.04+/Debian 12+, x86_64 o arm64.
+- name: Prerrequisitos (repositorios de terceros y ejecutar tareas como otro usuario)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gpg
+      - python3-debian   # lo necesita el módulo deb822_repository
+      - acl              # permite a Ansible actuar como otro usuario
+    state: present
+
+- name: Comprobar arquitectura
+  ansible.builtin.assert:
+    that: ansible_facts['architecture'] in ['x86_64', 'aarch64']
+    fail_msg: "Claude Desktop para Linux solo está disponible para x86_64 y arm64; detectado {{ ansible_facts['architecture'] }}."
+    quiet: true
+
+- name: Directorio de claves de apt
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Descargar la clave de firma de Claude Desktop
+  ansible.builtin.get_url:
+    url: https://downloads.claude.ai/claude-desktop/key.asc
+    dest: /etc/apt/keyrings/claude-desktop.asc
+    mode: "0644"
+
+- name: Leer la huella de la clave (solo si se ha configurado una esperada)
+  ansible.builtin.command: gpg --show-keys --with-colons /etc/apt/keyrings/claude-desktop.asc
+  register: claude_desktop_key_info
+  changed_when: false
+  when: claude_desktop_key_fingerprint | length > 0
+
+- name: Verificar la huella de la clave
+  ansible.builtin.assert:
+    that: claude_desktop_key_fingerprint | replace(' ', '') | upper in claude_desktop_key_info.stdout
+    fail_msg: "La clave de Claude Desktop NO coincide con la huella configurada."
+    quiet: true
+  when: claude_desktop_key_fingerprint | length > 0
+
+- name: Repositorio apt de Claude Desktop
+  ansible.builtin.deb822_repository:
+    name: claude-desktop
+    types: deb
+    uris: https://downloads.claude.ai/claude-desktop/apt/stable
+    suites: stable
+    components: main
+    architectures: [amd64, arm64]
+    signed_by: /etc/apt/keyrings/claude-desktop.asc
+    state: present
+  register: claude_desktop_repo
+
+- name: Actualizar el índice si cambió el repositorio
+  ansible.builtin.apt:
+    update_cache: true
+  when: claude_desktop_repo is changed
+
+- name: Instalar Claude Desktop
+  ansible.builtin.apt:
+    name: claude-desktop
+    state: present

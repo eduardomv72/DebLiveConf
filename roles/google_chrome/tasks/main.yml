@@ -1,0 +1,99 @@
+---
+# Requiere las variables live_user/live_home/live_uid/live_gid del rol preflight.
+- name: Prerrequisitos (repositorios de terceros y ejecutar tareas como otro usuario)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gpg
+      - python3-debian   # lo necesita el módulo deb822_repository
+      - acl              # permite a Ansible actuar como otro usuario
+    state: present
+
+- name: Comprobar arquitectura (Google Chrome solo existe para amd64)
+  ansible.builtin.assert:
+    that: ansible_facts['architecture'] == 'x86_64'
+    fail_msg: "Google Chrome para Linux solo está disponible para amd64; detectado {{ ansible_facts['architecture'] }}."
+    quiet: true
+
+- name: Directorio de claves de apt
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Descargar la clave de firma de Google
+  ansible.builtin.get_url:
+    url: https://dl.google.com/linux/linux_signing_key.pub
+    dest: /etc/apt/keyrings/google-chrome.asc
+    mode: "0644"
+
+- name: Evitar que el paquete añada su propio repositorio (lo gestionamos aquí)
+  ansible.builtin.copy:
+    dest: /etc/default/google-chrome
+    content: |
+      # Gestionado por Ansible
+      repo_add_once="false"
+    mode: "0644"
+
+- name: Repositorio de Google Chrome
+  ansible.builtin.deb822_repository:
+    name: google-chrome
+    types: deb
+    uris: https://dl.google.com/linux/chrome/deb/
+    suites: stable
+    components: main
+    architectures: amd64
+    signed_by: /etc/apt/keyrings/google-chrome.asc
+    state: present
+  register: google_chrome_repo
+
+- name: Actualizar el índice si cambió el repositorio
+  ansible.builtin.apt:
+    update_cache: true
+  when: google_chrome_repo is changed
+
+- name: Instalar Google Chrome
+  ansible.builtin.apt:
+    name: google-chrome-stable
+    state: present
+
+- name: Directorio de políticas gestionadas de Chrome
+  ansible.builtin.file:
+    path: /etc/opt/chrome/policies/managed
+    state: directory
+    mode: "0755"
+
+- name: Políticas de Chrome (ajustes y extensiones forzadas)
+  ansible.builtin.template:
+    src: chrome-policies.json.j2
+    dest: /etc/opt/chrome/policies/managed/live-policies.json
+    mode: "0644"
+
+- name: Directorio ~/.config del usuario
+  ansible.builtin.file:
+    path: "{{ live_home }}/.config"
+    state: directory
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0755"
+  when: chrome_set_default
+
+- name: Chrome como navegador por defecto
+  community.general.ini_file:
+    path: "{{ live_home }}/.config/mimeapps.list"
+    section: Default Applications
+    option: "{{ item }}"
+    value: google-chrome.desktop
+    no_extra_spaces: true
+    create: true
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0644"
+  loop:
+    - text/html
+    - x-scheme-handler/http
+    - x-scheme-handler/https
+    - x-scheme-handler/about
+    - x-scheme-handler/unknown
+  when: chrome_set_default

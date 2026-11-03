@@ -1,0 +1,4 @@
+---
+# Opcional: si rellenas la huella de la clave (cópiala de la documentación oficial de Anthropic),
+# el rol se detiene si la clave descargada no coincide. Vacío = no se comprueba.
+claude_desktop_key_fingerprint: ""

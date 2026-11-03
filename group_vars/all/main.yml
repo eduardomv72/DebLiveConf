@@ -20,7 +20,7 @@ keyboard_model: pc105
 keyboard_layout: es
 keyboard_variant: ""
 keyboard_options: ""
-system_hostname: debian-live
+system_hostname: deb13live
 
 # --- Red ---
 wifi_country: ES
@@ -72,7 +72,6 @@ packages_install_optional:
   - gnome-shell-extension-dashtodock
   - gnome-shell-extension-appindicator
   - gnome-shell-extension-caffeine
-  - keepassxc
 
 # --- Git y SSH ---
 git_user_name: ""
@@ -108,7 +107,7 @@ gnome_settings:
   org/gnome/nautilus/preferences:
     default-folder-viewer: "'list-view'"
   org/gnome/shell:
-    favorite-apps: "['org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'org.gnome.Terminal.desktop']"
+    favorite-apps: "['org.gnome.Nautilus.desktop', 'google-chrome.desktop', 'code.desktop', 'org.gnome.Terminal.desktop']"
     enabled-extensions: "['dash-to-dock@micxgx.gmail.com', 'appindicatorsupport@rgcjonas.gmail.com']"
   org/gnome/shell/extensions/dash-to-dock:
     dock-position: "'BOTTOM'"
@@ -117,3 +116,11 @@ gnome_settings:
   # Fondo de pantalla (ejemplo):
   # org/gnome/desktop/background:
   #   picture-uri: "'file:///usr/share/backgrounds/gnome/adwaita-l.jxl'"
+  
+install_google_chrome: true
+install_vscode: true
+install_claude_code: true
+install_claude_desktop: true
+
+
+

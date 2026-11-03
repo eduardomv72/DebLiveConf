@@ -9,10 +9,17 @@
   gather_facts: true
 
   roles:
-    - { role: preflight,    tags: [always, preflight] }
-    - { role: packages,     tags: [packages] }
-    - { role: localization, tags: [localization] }
+    - { role: preflight,      tags: [always, preflight] }
+    - { role: packages,       tags: [packages] }
+    - { role: localization,   tags: [localization] }
+    - { role: gnome-emv,      tags: [gnome] }
+    - { role: google_chrome,  tags: [apps, google_chrome],  when: install_google_chrome | default(true) }
+    - { role: vscode,         tags: [apps, vscode],         when: install_vscode | default(true) }
+    - { role: claude_code,    tags: [apps, claude_code],    when: install_claude_code | default(true) }
+    - { role: claude_desktop, tags: [apps, claude_desktop], when: install_claude_desktop | default(true) }
+
+
+  #  - { role: user_env,     tags: [user_env] }
   #  - { role: network,      tags: [network] }
   #  - { role: hardware,     tags: [hardware] }
-    - { role: gnome-emv,        tags: [gnome] }
-  #  - { role: user_env,     tags: [user_env] }
+

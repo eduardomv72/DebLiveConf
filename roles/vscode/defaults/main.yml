@@ -1,0 +1,13 @@
+---
+vscode_extensions:
+  - redhat.ansible
+  - redhat.vscode-yaml
+  - ms-python.python
+  - anthropic.claude-code
+vscode_settings:
+  editor.fontFamily: "'Fira Code', monospace"
+  editor.fontLigatures: true
+  editor.fontSize: 14
+  files.autoSave: afterDelay
+  telemetry.telemetryLevel: "off"
+  workbench.startupEditor: none

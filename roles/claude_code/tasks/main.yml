@@ -1,0 +1,104 @@
+---
+# Requiere las variables live_user/live_home/live_uid/live_gid del rol preflight.
+- name: Prerrequisitos (repositorios de terceros y ejecutar tareas como otro usuario)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gpg
+      - python3-debian   # lo necesita el módulo deb822_repository
+      - acl              # permite a Ansible actuar como otro usuario
+    state: present
+
+- name: Comprobar el método de instalación
+  ansible.builtin.assert:
+    that: claude_code_method in ['apt', 'native']
+    fail_msg: "claude_code_method debe ser 'apt' o 'native'."
+    quiet: true
+
+# ------------------------- Método apt (recomendado) -------------------------
+- name: Instalación por apt
+  when: claude_code_method == 'apt'
+  block:
+    - name: Directorio de claves de apt
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Descargar la clave de firma de Claude Code
+      ansible.builtin.get_url:
+        url: https://downloads.claude.ai/keys/claude-code.asc
+        dest: /etc/apt/keyrings/claude-code.asc
+        mode: "0644"
+
+    - name: Leer la huella de la clave descargada
+      ansible.builtin.command: gpg --show-keys --with-colons /etc/apt/keyrings/claude-code.asc
+      register: claude_code_key_info
+      changed_when: false
+
+    - name: Verificar que la huella coincide con la publicada por Anthropic
+      ansible.builtin.assert:
+        that: claude_code_key_fingerprint in claude_code_key_info.stdout
+        fail_msg: "La clave descargada NO coincide con la huella esperada. No se añade el repositorio."
+        quiet: true
+
+    - name: Repositorio apt de Claude Code
+      ansible.builtin.deb822_repository:
+        name: claude-code
+        types: deb
+        uris: https://downloads.claude.ai/claude-code/apt/stable
+        suites: stable
+        components: main
+        signed_by: /etc/apt/keyrings/claude-code.asc
+        state: present
+      register: claude_code_repo
+
+    - name: Actualizar el índice si cambió el repositorio
+      ansible.builtin.apt:
+        update_cache: true
+      when: claude_code_repo is changed
+
+    - name: Instalar Claude Code
+      ansible.builtin.apt:
+        name: claude-code
+        state: present
+
+# ------------------------- Método nativo (opcional) -------------------------
+- name: Instalación con el instalador nativo
+  when: claude_code_method == 'native'
+  block:
+    - name: Ejecutar el instalador oficial como usuario
+      ansible.builtin.shell: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
+      args:
+        executable: /bin/bash
+        creates: "{{ live_home }}/.local/bin/claude"
+      become: true
+      become_user: "{{ live_user }}"
+      environment:
+        HOME: "{{ live_home }}"
+
+    - name: Añadir ~/.local/bin al PATH
+      ansible.builtin.blockinfile:
+        path: "{{ live_home }}/.bashrc"
+        marker: "# {mark} ANSIBLE CLAUDE CODE"
+        block: 'export PATH="$HOME/.local/bin:$PATH"'
+        create: true
+        owner: "{{ live_uid }}"
+        group: "{{ live_gid }}"
+        mode: "0644"
+
+- name: Comprobar la versión instalada
+  ansible.builtin.command: claude --version
+  become: true
+  become_user: "{{ live_user }}"
+  environment:
+    HOME: "{{ live_home }}"
+    PATH: "{{ live_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  register: claude_code_version
+  changed_when: false
+  failed_when: false
+
+- name: Mostrar la versión de Claude Code
+  ansible.builtin.debug:
+    msg: "Claude Code: {{ claude_code_version.stdout | default('no se pudo comprobar') }}. Inicia sesión ejecutando 'claude'."

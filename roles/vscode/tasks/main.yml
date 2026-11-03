@@ -1,0 +1,101 @@
+---
+# Requiere las variables live_user/live_home/live_uid/live_gid del rol preflight.
+- name: Prerrequisitos (repositorios de terceros y ejecutar tareas como otro usuario)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gpg
+      - python3-debian   # lo necesita el módulo deb822_repository
+      - acl              # permite a Ansible actuar como otro usuario
+    state: present
+
+- name: Directorio de claves de apt
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Descargar la clave de firma de Microsoft
+  ansible.builtin.get_url:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    dest: /etc/apt/keyrings/microsoft.asc
+    mode: "0644"
+
+- name: Evitar que el paquete pregunte por añadir su propio repositorio
+  ansible.builtin.debconf:
+    name: code
+    question: code/add-microsoft-repo
+    vtype: boolean
+    value: "false"
+
+- name: Repositorio de Visual Studio Code
+  ansible.builtin.deb822_repository:
+    name: vscode
+    types: deb
+    uris: https://packages.microsoft.com/repos/code
+    suites: stable
+    components: main
+    architectures: [amd64, arm64, armhf]
+    signed_by: /etc/apt/keyrings/microsoft.asc
+    state: present
+  register: vscode_repo
+
+- name: Actualizar el índice si cambió el repositorio
+  ansible.builtin.apt:
+    update_cache: true
+  when: vscode_repo is changed
+
+- name: Instalar Visual Studio Code
+  ansible.builtin.apt:
+    name: code
+    state: present
+
+- name: Directorios de configuración de VS Code
+  ansible.builtin.file:
+    path: "{{ live_home }}/{{ item }}"
+    state: directory
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0755"
+  loop:
+    - .config
+    - .config/Code
+    - .config/Code/User
+
+- name: Ajustes de VS Code (settings.json)
+  ansible.builtin.copy:
+    content: "{{ vscode_settings | to_nice_json }}\n"
+    dest: "{{ live_home }}/.config/Code/User/settings.json"
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0644"
+
+- name: Consultar extensiones ya instaladas
+  ansible.builtin.command: code --list-extensions
+  become: true
+  become_user: "{{ live_user }}"
+  environment:
+    HOME: "{{ live_home }}"
+  register: vscode_installed_extensions
+  changed_when: false
+  failed_when: false
+
+- name: Instalar extensiones de VS Code
+  ansible.builtin.command: "code --install-extension {{ item }}"
+  become: true
+  become_user: "{{ live_user }}"
+  environment:
+    HOME: "{{ live_home }}"
+  loop: "{{ vscode_extensions }}"
+  when: item | lower not in (vscode_installed_extensions.stdout_lines | map('lower') | list)
+  register: vscode_extension_result
+  changed_when: "'successfully installed' in (vscode_extension_result.stdout | lower)"
+  ignore_errors: true
+
+- name: Avisar de extensiones que no se pudieron instalar
+  ansible.builtin.debug:
+    msg: "No se pudo instalar la extensión de VS Code: {{ item.item }}"
+  loop: "{{ vscode_extension_result.results | default([]) | selectattr('failed', 'defined') | selectattr('failed') | list }}"
+  loop_control:
+    label: "{{ item.item }}"
