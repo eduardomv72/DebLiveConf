@@ -1,0 +1,16 @@
+---
+# Zona horaria del sistema
+timesync_timezone: Europe/Madrid
+
+# Servidores NTP principales y de respaldo
+timesync_ntp_servers:
+  - 0.es.pool.ntp.org
+  - 1.es.pool.ntp.org
+  - 2.es.pool.ntp.org
+timesync_fallback_servers:
+  - 0.debian.pool.ntp.org
+  - 1.debian.pool.ntp.org
+
+# Guardar el reloj del hardware en UTC (recomendado). Ponlo a true solo si
+# prefieres que Windows y Linux compartan la hora local sin desfases.
+timesync_rtc_local: false

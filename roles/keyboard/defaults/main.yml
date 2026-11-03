@@ -1,0 +1,20 @@
+---
+# Distribución de teclado del sistema (consola y entorno gráfico)
+keyboard_model: pc105
+keyboard_layout: es
+keyboard_variant: ""
+keyboard_options: ""
+
+# Usuario de escritorio GNOME al que aplicar la distribución
+keyboard_desktop_user: "{{ lookup('ansible.builtin.env', 'USER') }}"
+
+# Distribuciones adicionales disponibles en GNOME, pero no activas
+keyboard_extra_layouts:
+  - us
+
+# Fuentes de entrada de GNOME, en orden. La primera es la que se usa por defecto.
+# Ejemplo para conservar también la escritura en japonés:
+#   "[('xkb', 'es'), ('xkb', 'us'), ('ibus', 'anthy')]"
+keyboard_gnome_sources: >-
+  [('xkb', '{{ keyboard_layout }}{{ ('+' ~ keyboard_variant) if keyboard_variant else '' }}')
+  {%- for layout in keyboard_extra_layouts %}, ('xkb', '{{ layout }}'){% endfor %}]

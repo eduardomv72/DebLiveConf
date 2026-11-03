@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: timesync
+  author: eduardomv72
+  description: Zona horaria y sincronización NTP con systemd-timesyncd
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - trixie
+dependencies: []

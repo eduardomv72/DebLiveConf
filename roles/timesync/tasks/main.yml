@@ -1,0 +1,54 @@
+---
+- name: Instalar systemd-timesyncd
+  ansible.builtin.apt:
+    name: systemd-timesyncd
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Establecer la zona horaria
+  community.general.timezone:
+    name: "{{ timesync_timezone }}"
+
+- name: Mantener /etc/timezone coherente con la zona horaria
+  ansible.builtin.copy:
+    dest: /etc/timezone
+    content: "{{ timesync_timezone }}\n"
+    mode: "0644"
+
+- name: Crear el directorio de configuración de timesyncd
+  ansible.builtin.file:
+    path: /etc/systemd/timesyncd.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Configurar los servidores NTP
+  ansible.builtin.template:
+    src: timesyncd.conf.j2
+    dest: /etc/systemd/timesyncd.conf.d/ansible.conf
+    mode: "0644"
+  notify: Reiniciar timesyncd
+
+- name: Activar e iniciar systemd-timesyncd
+  ansible.builtin.systemd_service:
+    name: systemd-timesyncd
+    enabled: true
+    state: started
+
+- name: Consultar el estado de NTP y del reloj del hardware
+  ansible.builtin.command: timedatectl show --property=NTP --property=LocalRTC
+  register: timesync_status
+  changed_when: false
+
+- name: Activar la sincronización NTP
+  ansible.builtin.command: timedatectl set-ntp true
+  when: "'NTP=yes' not in timesync_status.stdout"
+  changed_when: true
+
+- name: Configurar si el reloj del hardware usa hora local o UTC
+  ansible.builtin.command: >-
+    timedatectl set-local-rtc {{ timesync_rtc_local | bool | ternary('1', '0') }}
+  when: >-
+    ('LocalRTC=' ~ (timesync_rtc_local | bool | ternary('yes', 'no')))
+    not in timesync_status.stdout
+  changed_when: true
