@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: live_ram
+  author: eduardomv72
+  description: Libera RAM en un Debian Live (servicios, autoarranque, copia de la ISO con toram)
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - trixie
+dependencies: []

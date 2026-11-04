@@ -1,0 +1,34 @@
+---
+# Unidades de systemd que se paran y enmascaran (las que no existan se ignoran).
+# Se enmascaran porque algunas (bolt, colord) se reactivan por D-Bus si solo se desactivan.
+live_ram_units_mask:
+  - cups.service
+  - cups.socket
+  - cups.path
+  - cups-browsed.service
+  - ModemManager.service
+  - avahi-daemon.service
+  - avahi-daemon.socket
+  - smartmontools.service
+  - bolt.service
+  - switcheroo-control.service
+  - colord.service
+
+# Apps de /etc/xdg/autostart que no se arrancan al iniciar sesión.
+live_ram_autostart_hide:
+  - org.gnome.Software.desktop
+  - org.gnome.Evolution-alarm-notify.desktop
+
+# Unidades de systemd --user que se enmascaran (indexador de archivos).
+live_ram_user_units_mask:
+  - localsearch-3.service
+  - localsearch-control-3.service
+
+# Procesos de usuario ya en marcha que se cierran para liberar memoria al momento.
+live_ram_kill_processes:
+  - gnome-software
+  - localsearch-3
+
+# Vaciar la copia de la ISO en RAM (solo actúa si se arrancó con toram).
+live_ram_trim_medium: true
+live_ram_medium_junk: [pool, pool-udeb, install, boot, EFI, isolinux, efi.img]

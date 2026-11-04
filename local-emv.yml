@@ -11,6 +11,7 @@
   roles:
     - { role: preflight,      tags: [always, preflight] }
     - { role: packages,       tags: [packages] }
+    - { role: live_ram,       tags: [live_ram] }
     - { role: localization,   tags: [localization] }
     - { role: gnome-emv,      tags: [gnome] }
     - { role: google_chrome,  tags: [apps, google_chrome],  when: install_google_chrome | default(true) }

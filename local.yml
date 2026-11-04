@@ -11,6 +11,7 @@
   roles:
     - { role: preflight,    tags: [always, preflight] }
     - { role: packages,     tags: [packages] }
+    - { role: live_ram,     tags: [live_ram] }
     - { role: localization, tags: [localization] }
     - { role: network,      tags: [network] }
     - { role: hardware,     tags: [hardware] }

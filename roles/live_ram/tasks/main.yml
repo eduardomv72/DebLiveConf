@@ -1,0 +1,99 @@
+---
+# Requiere las variables live_home/live_uid/live_gid/is_live del rol preflight.
+
+# service_facts solo ve .service; para incluir .socket y .path se listan todas las unidades.
+- name: Listar unidades de systemd existentes
+  ansible.builtin.command: systemctl list-unit-files --no-legend --plain
+  register: live_ram_unit_files
+  changed_when: false
+  check_mode: false
+
+- name: Parar y enmascarar servicios innecesarios
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    masked: true
+  loop: "{{ live_ram_units_mask }}"
+  when: item in live_ram_unit_files.stdout_lines | map('split') | map('first')
+
+- name: Directorios de configuración del usuario
+  ansible.builtin.file:
+    path: "{{ live_home }}/{{ item }}"
+    state: directory
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0755"
+  loop:
+    - .config
+    - .config/autostart
+    - .config/systemd
+    - .config/systemd/user
+
+- name: Ocultar apps de autoarranque del usuario
+  ansible.builtin.copy:
+    dest: "{{ live_home }}/.config/autostart/{{ item }}"
+    content: "[Desktop Entry]\nHidden=true\n"
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+    mode: "0644"
+  loop: "{{ live_ram_autostart_hide }}"
+
+- name: Enmascarar unidades de usuario (equivale a systemctl --user mask)
+  ansible.builtin.file:
+    src: /dev/null
+    dest: "{{ live_home }}/.config/systemd/user/{{ item }}"
+    state: link
+    force: true
+    follow: false      # sin esto cambiaría el dueño de /dev/null
+    owner: "{{ live_uid }}"
+    group: "{{ live_gid }}"
+  loop: "{{ live_ram_user_units_mask }}"
+
+- name: Cerrar procesos de usuario que ya estaban en marcha
+  ansible.builtin.command: "pkill -x {{ item }}"
+  loop: "{{ live_ram_kill_processes }}"
+  register: live_ram_pkill
+  changed_when: live_ram_pkill.rc == 0
+  failed_when: live_ram_pkill.rc > 1     # 1 = no había proceso
+
+# ansible_facts.mounts no incluye /run/live/medium, así que se consulta con findmnt.
+- name: Comprobar si la copia de la ISO está en RAM (toram)
+  ansible.builtin.command: findmnt -no FSTYPE /run/live/medium
+  register: live_ram_medium_fstype
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Vaciar la copia de la ISO en RAM (toram)
+  when:
+    - live_ram_trim_medium
+    - is_live | bool
+    - live_ram_medium_fstype.stdout == 'tmpfs'
+  block:
+    - name: Montar la copia de la ISO en lectura/escritura
+      ansible.builtin.command: mount -o remount,rw /run/live/medium
+      changed_when: false
+
+    - name: Borrar lo que no usa el sistema en marcha
+      ansible.builtin.file:
+        path: "/run/live/medium/{{ item }}"
+        state: absent
+      loop: "{{ live_ram_medium_junk }}"
+
+    - name: Buscar kernel e initrd (ya están cargados)
+      ansible.builtin.find:
+        paths: /run/live/medium/live
+        patterns: ["initrd.img*", "vmlinuz*"]
+      register: live_ram_boot_files
+
+    - name: Borrar kernel e initrd
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ live_ram_boot_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+  always:
+    - name: Volver a montar la copia de la ISO en solo lectura
+      ansible.builtin.command: mount -o remount,ro /run/live/medium
+      changed_when: false
