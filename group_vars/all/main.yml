@@ -4,8 +4,9 @@
 # =====================================================================
 
 # --- Repositorio (lo usa el script sync-config) ---
-repo_url: "https://github.com/TU_USUARIO/live-config.git"
+repo_url: "https://github.com/eduardomv72/DebLiveConf.git"
 repo_branch: main
+repo_playbook: local-emv.yml
 
 # --- Usuario del sistema live ---
 live_user: user

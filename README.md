@@ -4,11 +4,11 @@ Configuración Ansible para dejar un Debian 13 Live (GNOME) siempre igual. Se ap
 
 ## Uso en un live recién arrancado (con red)
 
-    curl -fsSL https://raw.githubusercontent.com/TU_USUARIO/live-config/main/bootstrap.sh | sudo bash
+    curl -fsSL https://raw.githubusercontent.com/eduardomv72/DebLiveConf/main/bootstrap.sh | sudo bash
 
 Con secretos cifrados (wifi, clave SSH):
 
-    curl -fsSL https://raw.githubusercontent.com/TU_USUARIO/live-config/main/bootstrap.sh | sudo bash -s -- --ask-vault-pass
+    curl -fsSL https://raw.githubusercontent.com/eduardomv72/DebLiveConf/main/bootstrap.sh | sudo bash -s -- --ask-vault-pass
 
 Después, para reaplicar o probar partes:
 
@@ -34,6 +34,7 @@ Todo se controla desde `group_vars/all/main.yml`. Los secretos van en `group_var
 
 ## Antes de usarlo
 
-1. Cambia `TU_USUARIO` en `bootstrap.sh` y en `group_vars/all/main.yml` (`repo_url`).
-2. Revisa `packages_remove` con `sudo apt -s remove <paquete>`.
+1. Revisa `packages_remove` con `sudo apt -s remove <paquete>`.
+2. El playbook que se ejecuta es `local-emv.yml` (variable `repo_playbook` en
+   `group_vars/all/main.yml`; en `bootstrap.sh`, variable de entorno `PLAYBOOK`).
 3. Prueba primero en una VM con Debian 13 + GNOME.
