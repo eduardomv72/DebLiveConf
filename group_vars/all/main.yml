@@ -41,14 +41,17 @@ packages_remove:
   - gnome-tour
   - simple-scan
   - yelp
-  - evolution
+  - evolution*
   - libreoffice*
+  - firefox*
+  
 packages_purge: false
 packages_autoremove: false      # true puede arrastrar paquetes inesperados en un live
 
 packages_install_recommends: false
 packages_install:
   - git
+  - gh
   - curl
   - wget
   - vim
