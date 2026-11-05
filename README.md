@@ -1,4 +1,4 @@
-# live-config
+# DebLiveConf
 
 Configuración Ansible para dejar un Debian 13 Live (GNOME) siempre igual. Se aplica con `ansible-pull`.
 
