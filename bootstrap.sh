@@ -16,6 +16,11 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 export DEBIAN_FRONTEND=noninteractive
+REPO_URL="${REPO_URL:-https://github.com/eduardomv72/DebLiveConf.git}"
+BRANCH="${BRANCH:-main}"
+PLAYBOOK="${PLAYBOOK:-local-emv.yml}"
+
+
 apt-get update
 apt-get install -y --no-install-recommends ansible git
 
