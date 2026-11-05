@@ -1,4 +1,0 @@
----
-- name: Aplicar teclado en la consola
-  ansible.builtin.command: setupcon --save --force
-  changed_when: true

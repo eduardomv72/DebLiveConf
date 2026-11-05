@@ -5,6 +5,39 @@
     fail_msg: "packages_remove contiene paquetes protegidos: {{ packages_remove | intersect(packages_protected) }}"
     quiet: true
 
+# La comprobación anterior solo ve nombres literales. Esta simula la eliminación
+# real, con comodines y dependencias: quitar 'evolution*' arrastra gnome-shell.
+- name: Simular la eliminación de paquetes
+  ansible.builtin.command:
+    argv: "{{ ['apt-get', '-s', 'remove']
+              + (['--purge'] if packages_purge else [])
+              + (['--autoremove'] if packages_autoremove else [])
+              + packages_remove }}"
+  register: packages_remove_sim
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: packages_remove | length > 0
+
+- name: Comprobar que la simulación ha funcionado
+  ansible.builtin.assert:
+    that: packages_remove_sim.rc == 0
+    fail_msg: "apt no pudo simular la eliminación (¿nombre mal escrito en packages_remove?): {{ packages_remove_sim.stderr }}"
+    quiet: true
+  when: packages_remove | length > 0
+
+- name: Comprobar que la eliminación no arrastra paquetes protegidos
+  vars:
+    packages_remove_real: "{{ packages_remove_sim.stdout_lines | select('match', '^Remv ') | map('split') | map(attribute=1) | list }}"
+  ansible.builtin.assert:
+    that: (packages_remove_real | intersect(packages_protected)) | length == 0
+    fail_msg: >-
+      Eliminar {{ packages_remove }} quitaría paquetes protegidos:
+      {{ packages_remove_real | intersect(packages_protected) }}.
+      Revisa con: apt-get -s remove <paquete>
+    quiet: true
+  when: packages_remove | length > 0
+
 - name: Eliminar paquetes que no se necesitan
   ansible.builtin.apt:
     name: "{{ packages_remove }}"

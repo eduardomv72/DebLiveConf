@@ -29,9 +29,8 @@ Después, para reaplicar o probar partes:
 | google_chrome, vscode, claude_code, claude_desktop | Apps (tag `apps`; se desactivan con `install_<app>: false`) |
 | user_env | .bashrc, vim, tmux, git, clave SSH, script sync-config |
 
-Solo en `local.yml`: `network` (NetworkManager, región wifi, redes del vault) y
-`hardware` (ajustes según hardware/VM). Sin usar: `timesync` y `keyboard`
-(los cubre `localization`; ver sus variables al final).
+Comentados en `local-emv.yml` (se activan quitando el `#`): `network` (NetworkManager,
+región wifi, redes wifi del vault) y `hardware` (herramientas de invitado si es una VM).
 
 ## Personalizar
 
@@ -40,39 +39,10 @@ Todo se controla desde `group_vars/all/main.yml`. Los secretos van en `group_var
 
 ## Antes de usarlo
 
-1. Revisa `packages_remove` con `sudo apt -s remove <paquete>`.
+1. Revisa `packages_remove` con `apt-get -s remove <paquete>` (el playbook también lo simula
+   y se detiene si la eliminación arrastra algún paquete de `packages_protected`).
 2. El playbook que se ejecuta es `local-emv.yml` (variable `repo_playbook` en
    `group_vars/all/main.yml`; en `bootstrap.sh`, variable de entorno `PLAYBOOK`).
 3. Prueba primero en una VM con Debian 13 + GNOME.
 4. Para probar cambios sin subirlos: `sudo ansible-playbook local-emv.yml --check --diff`
    (`sync-config` descarga de GitHub, así que solo ve lo que está subido).
-
-## Roles sin usar: `timesync` y `keyboard`
-
-Se pueden añadir a un playbook si se prefieren a `localization`.
-
-- `timesync`: zona horaria y sincronización automática de la hora con systemd-timesyncd.
-- `keyboard`: teclado en la consola y en el escritorio GNOME.
-
-Requieren la colección `community.general` (incluida con el paquete `ansible`).
-
-### Variables de `timesync` (roles/timesync/defaults/main.yml)
-
-| Variable | Por defecto | Descripción |
-|---|---|---|
-| `timesync_timezone` | `Europe/Madrid` | Zona horaria |
-| `timesync_ntp_servers` | `*.es.pool.ntp.org` | Servidores NTP |
-| `timesync_fallback_servers` | `*.debian.pool.ntp.org` | Servidores de respaldo |
-| `timesync_rtc_local` | `false` | `true` = reloj del hardware en hora local (evita el desfase con Windows) |
-
-### Variables de `keyboard` (roles/keyboard/defaults/main.yml)
-
-| Variable | Por defecto | Descripción |
-|---|---|---|
-| `keyboard_layout` | `es` | Distribución del teclado |
-| `keyboard_variant` | `""` | Variante (p. ej. `cat` para catalán) |
-| `keyboard_model` | `pc105` | Modelo de teclado |
-| `keyboard_options` | `""` | Opciones XKB (p. ej. `caps:escape`) |
-| `keyboard_desktop_user` | usuario actual | Usuario GNOME a configurar |
-| `keyboard_extra_layouts` | `[us]` | Distribuciones adicionales, disponibles pero no activas |
-| `keyboard_gnome_sources` | `[('xkb', 'es'), ('xkb', 'us')]` | Fuentes de entrada de GNOME, en orden (la primera es la activa) |
