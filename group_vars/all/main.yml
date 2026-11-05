@@ -41,7 +41,7 @@ packages_remove:
   - gnome-tour
   - simple-scan
   - yelp
-  - evolution*
+  - evolution
   - libreoffice*
   - firefox*
   
