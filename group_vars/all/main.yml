@@ -42,6 +42,9 @@ packages_remove:
   - simple-scan
   - yelp
   - evolution
+  - evolution-common
+  - libevolution
+  - evolution-ews-core
   - libreoffice*
   - firefox*
   
