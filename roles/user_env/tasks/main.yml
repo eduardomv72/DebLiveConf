@@ -37,13 +37,22 @@
     - { src: vimrc, dest: .vimrc }
     - { src: tmux.conf, dest: .tmux.conf }
 
+# Se fija clave a clave (como 'git config --global') para no borrar lo que
+# añadan otras herramientas, p. ej. el credential helper de 'gh auth setup-git'.
 - name: Configuración de git
-  ansible.builtin.template:
-    src: gitconfig.j2
-    dest: "{{ live_home }}/.gitconfig"
-    owner: "{{ live_uid }}"
-    group: "{{ live_gid }}"
-    mode: "0644"
+  community.general.git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop:
+    - { name: user.name, value: "{{ git_user_name }}" }
+    - { name: user.email, value: "{{ git_user_email }}" }
+    - { name: init.defaultBranch, value: main }
+    - { name: pull.rebase, value: "false" }
+  become: true
+  become_user: "{{ live_user }}"
+  environment:
+    HOME: "{{ live_home }}"
   when: git_user_name | length > 0
 
 - name: Clave SSH privada (viene del vault)
