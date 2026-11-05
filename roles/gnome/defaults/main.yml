@@ -1,0 +1,4 @@
+---
+# Claves de dconf en las que se borra el valor propio del usuario para que
+# se aplique el de gnome_settings (un valor del usuario tapa al del sistema).
+gnome_reset_user_keys: []

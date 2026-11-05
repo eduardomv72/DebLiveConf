@@ -30,3 +30,28 @@
 
 - name: Aplicar ajustes ahora
   ansible.builtin.meta: flush_handlers
+
+# dconf escribe a través del bus de D-Bus de la sesión; sin sesión abierta no se puede.
+- name: Comprobar si el usuario tiene sesión abierta
+  ansible.builtin.stat:
+    path: "/run/user/{{ live_uid }}/bus"
+  register: gnome_user_bus
+
+# 'dconf read' devuelve el valor del sistema si el usuario no tiene uno propio,
+# así que solo se borra cuando difiere del valor por defecto ('dconf read -d').
+- name: Quitar valores del usuario que tapan los del sistema
+  ansible.builtin.command:
+    argv:
+      - sh
+      - -c
+      - '[ "$(dconf read "$1")" = "$(dconf read -d "$1")" ] || { dconf reset "$1" && echo reset; }'
+      - sh
+      - "{{ item }}"
+  loop: "{{ gnome_reset_user_keys }}"
+  register: gnome_reset_result
+  changed_when: "'reset' in gnome_reset_result.stdout"
+  become: true
+  become_user: "{{ live_user }}"
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ live_uid }}/bus"
+  when: gnome_user_bus.stat.exists

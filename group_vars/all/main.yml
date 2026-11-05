@@ -96,7 +96,7 @@ gnome_settings:
     enable-hot-corners: false
     show-battery-percentage: true
   org/gnome/desktop/input-sources:
-    sources: "[('xkb', '{{ keyboard_layout }}{{ '+' ~ keyboard_variant if keyboard_variant else '' }}')]"
+    sources: "[('xkb', '{{ keyboard_layout }}{{ '+' ~ keyboard_variant if keyboard_variant else '' }}'), ('xkb', 'us')]"
   org/gnome/desktop/wm/preferences:
     button-layout: "'appmenu:minimize,maximize,close'"
   org/gnome/desktop/peripherals/touchpad:
@@ -123,6 +123,12 @@ gnome_settings:
   # Fondo de pantalla (ejemplo):
   # org/gnome/desktop/background:
   #   picture-uri: "'file:///usr/share/backgrounds/gnome/adwaita-l.jxl'"
+
+# El live guarda sus propias fuentes de entrada en la base del usuario;
+# se borran para que se apliquen las de gnome_settings.
+gnome_reset_user_keys:
+  - /org/gnome/desktop/input-sources/sources
+  - /org/gnome/desktop/input-sources/mru-sources
   
 install_google_chrome: true
 install_vscode: true
