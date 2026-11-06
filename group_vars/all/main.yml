@@ -6,7 +6,7 @@
 # --- Repositorio (lo usa el script sync-config) ---
 repo_url: "https://github.com/eduardomv72/DebLiveConf.git"
 repo_branch: main
-repo_playbook: local-emv.yml
+repo_playbook: main.yml
 
 # --- Usuario del sistema live ---
 live_user: user
@@ -41,12 +41,12 @@ packages_remove:
   - gnome-tour
   - simple-scan
   - yelp
-  - evolution
-  - evolution-common
-  - libevolution
-  - evolution-ews-core
+  - evolution*
   - libreoffice*
   - firefox*
+  - shotwell
+  - mozc-*
+  
   
 packages_purge: false
 packages_autoremove: false      # true puede arrastrar paquetes inesperados en un live

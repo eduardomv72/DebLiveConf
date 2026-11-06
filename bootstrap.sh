@@ -5,18 +5,20 @@
 #   curl -fsSL .../bootstrap.sh | sudo bash -s -- --ask-vault-pass
 # Cualquier argumento extra se pasa a ansible-pull (p. ej. --tags gnome).
 set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
-REPO_URL="${REPO_URL:-https://github.com/eduardomv72/DebLiveConf.git}"
-BRANCH="${BRANCH:-main}"
-PLAYBOOK="${PLAYBOOK:-local-emv.yml}"
+export REPO_URL="${REPO_URL:-https://github.com/eduardomv72/DebLiveConf.git}"
+export BRANCH="${BRANCH:-main}"
+export PLAYBOOK="${PLAYBOOK:-main.yml}"
+export REPO_DEST="/home/user/DebLiveConf"
 
 if [[ $EUID -ne 0 ]]; then
   echo "Ejecuta este script como root (sudo bash)." >&2
   exit 1
 fi
 
-export DEBIAN_FRONTEND=noninteractive
-apt-get update
+export git config --global user.email "eduardomv72@gmail.com"
+#apt-get update
 apt-get install -y --no-install-recommends ansible git
 
-exec ansible-pull -U "$REPO_URL" -C "$BRANCH" -d /var/lib/ansible-pull "$@" "$PLAYBOOK"
+ansible-pull -U "$REPO_URL" -C "$BRANCH" -d "$REPO_DEST "$@" "$PLAYBOOK"
