@@ -41,11 +41,11 @@ packages_remove:
   - gnome-tour
   - simple-scan
   - yelp
-  - evolution*
+  - evolution
   - libreoffice*
-  - firefox*
+  - firefox
   - shotwell
-  - mozc-*
+  - mozc
   
   
 packages_purge: false
