@@ -45,7 +45,7 @@ packages_remove:
   - libreoffice*
   - firefox
   - shotwell
-  - mozc
+  - mozc-*
   
   
 packages_purge: false
