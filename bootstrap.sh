@@ -12,13 +12,15 @@ export BRANCH="${BRANCH:-main}"
 export PLAYBOOK="${PLAYBOOK:-main.yml}"
 export REPO_DEST="/home/user/DebLiveConf"
 
-if [[ $EUID -ne 0 ]]; then
-  echo "Ejecuta este script como root (sudo bash)." >&2
-  exit 1
-fi
+#if [[ $EUID -ne 0 ]]; then
+#  echo "Ejecuta este script como root (sudo bash)." >&2
+#  exit 1
+#fi
 
-export git config --global user.email "eduardomv72@gmail.com"
+
 #apt-get update
-apt-get install -y --no-install-recommends ansible git
+#apt-get install -y --no-install-recommends ansible git
 
-ansible-pull -U "$REPO_URL" -C "$BRANCH" -d "$REPO_DEST "$@" "$PLAYBOOK"
+ansible-pull -U "$REPO_URL" -C "$BRANCH" -d "$REPO_DEST" "$@" "$PLAYBOOK"
+
+git config --global user.email "eduardomv72@gmail.com"
