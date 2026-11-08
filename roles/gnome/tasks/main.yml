@@ -55,3 +55,10 @@
   environment:
     DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ live_uid }}/bus"
   when: gnome_user_bus.stat.exists
+
+- name: Permitir el bloqueo de pantalla en GNOME
+  community.general.dconf:
+    key: /org/gnome/desktop/lockdown/disable-lock-screen
+    value: "false"
+    state: present
+  become: false
