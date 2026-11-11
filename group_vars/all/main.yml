@@ -72,6 +72,7 @@ packages_install:
   - python3-psutil
   - gnome-tweaks
   - fonts-firacode
+  - sqlitebrowser
 
 # Si alguno falla (nombre distinto o no disponible) solo se avisa, no se detiene el playbook.
 packages_install_optional:
